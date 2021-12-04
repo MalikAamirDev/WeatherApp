@@ -1,39 +1,25 @@
 import "./App.css";
 import styled from "styled-components";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import tem from "./assets/tem.png";
 import humidity from "./assets/humidity.png";
 import pressure from "./assets/pressure.png";
-import haze from "./assets/haze.png";
+import { FetchWeather } from "./config/FetchWeather";
 
 function App() {
   const [city, setCity] = useState([]);
-  const [search, setSearch] = useState('Karachi');
+  const [search, setSearch] = useState("Karachi");
   const [loader, setLoader] = useState(true);
-  
-
-  const apiHandle = axios.create({
-    baseURL: `https://api.openweathermap.org/data/2.5/weather?q=${search}&appid=20e09dd31d408392d524ea2d2265dba9`,
-  });
-
-  const getWeatherData = async () => {
-    await apiHandle.get("").then((e) => {
-      setCity(e.data);
-      setLoader(false);
-    });
-  };
-
-  // const SearchData = (e) =>{
-  //   if(e.key === 'Enter'){
-  //     setSearch(search)
-  //     setSearch('')
-  //   }
-  // }
 
   useEffect(() => {
+    const getWeatherData = async () => {
+      const data = await FetchWeather(search);
+      setCity(data);
+      setSearch("");
+      setLoader(false);
+    };
     getWeatherData();
-  }, []);
+  }, [search]);
 
   return (
     <>
@@ -46,10 +32,8 @@ function App() {
           <Container>
             <SearchBox>
               <SearchBar
-                placeholder="Search..."
+                placeholder="Enter City"
                 type="text"
-                // value={search}
-                // onKeyPress={SearchData}
                 onChange={(e) => setSearch(e.target.value)}
               />
             </SearchBox>
@@ -63,36 +47,37 @@ function App() {
                       {city.name} <sup>{city.sys.country}</sup>
                     </CityName>
                     <WeatherTemperature>
-                      {city.main.temp} F
+                      {city.main.temp} <sup>&deg;C</sup>
                     </WeatherTemperature>
                   </LocationBar>
                   <WeatherInfo>
                     <WeatherCondition>
-                      <img src={haze} />
-                      {/* <span>{city.weather[0].icon}</span> */}
+                      <img
+                        alt={city.weather[0].main}
+                        src={`https://openweathermap.org/img/wn/${city.weather[0].icon}@2x.png`}
+                      />
+                      <span>{city.weather[0].main}</span>
                     </WeatherCondition>
                     <WeatherIcons>
                       <WeatherTemp>
-                        <img src={tem} />
+                        <img alt={city.main.temp} src={tem} />
                         <h4>Temperature</h4>
                         <hr />
-                        <span>{city.main.temp} F</span>
+                        <span>{city.main.temp} &deg;C </span>
                       </WeatherTemp>
                       <WeatherHumidity>
-                        <img src={humidity} />
+                        <img alt={city.main.humidity} src={humidity} />
                         <h4>Humidity</h4>
                         <hr />
                         <span>{city.main.humidity}%</span>
                       </WeatherHumidity>
                       <WeatherPressure>
-                        <img src={pressure} />
+                        <img alt={city.main.pressure} src={pressure} />
                         <h4>Pressure</h4>
                         <hr />
-                        <span>{city.main.pressure}</span>
+                        <span>{city.main.pressure}p</span>
                       </WeatherPressure>
                     </WeatherIcons>
-                    <WeatherTemperatureMax></WeatherTemperatureMax>
-                    <WeatherTemperatureMin></WeatherTemperatureMin>
                   </WeatherInfo>
                 </>
               )}
@@ -110,9 +95,7 @@ const MainContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #5c258d;
-  background: -webkit-linear-gradient(to right, #4389a2, #5c258d);
-  background: linear-gradient(to right, #4389a2, #5c258d);
+  background: linear-gradient(to right, #f2709c, #ff9472);
 `;
 const LoaderBox = styled.div`
   margin-top: 300px;
@@ -120,6 +103,7 @@ const LoaderBox = styled.div`
 
 const Container = styled.div`
   min-height: 100vh;
+  padding-top: 50px;
 `;
 const SearchBox = styled.div`
   width: 100%;
@@ -144,7 +128,7 @@ const SearchBar = styled.input`
   }
 `;
 const LocationBox = styled.div`
-  margin: 50px 20px;
+  margin: 10px 20px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -179,6 +163,10 @@ const CityName = styled.h1`
 const WeatherTemperature = styled.h1`
   font-size: 72px;
   margin-top: 40px;
+  sup {
+    font-size: 2.5rem;
+    margin-left: -0.5em;
+  }
 `;
 const WeatherInfo = styled.div``;
 const WeatherCondition = styled.div`
@@ -191,7 +179,7 @@ const WeatherCondition = styled.div`
     height: 100px;
   }
   span {
-    margin-top: 8px;
+    margin-top: -10px;
     font-weight: 500;
     font-size: 14px;
   }
@@ -281,5 +269,3 @@ const WeatherHumidity = styled.div`
     margin-top: 5px;
   }
 `;
-const WeatherTemperatureMax = styled.div``;
-const WeatherTemperatureMin = styled.div``;
